@@ -1,0 +1,271 @@
+basePath: /api/v1
+definitions:
+  internal_controllers_v1_orderbook.getOrderBookResponse:
+    properties:
+      order_book:
+        items:
+          $ref: '#/definitions/market-info-storage_internal_domain.DepthOrder'
+        type: array
+    type: object
+  internal_controllers_v1_orderbook.saveOrderBookRequestBody:
+    properties:
+      order_book:
+        items:
+          $ref: '#/definitions/market-info-storage_internal_domain.DepthOrder'
+        type: array
+    required:
+    - order_book
+    type: object
+  internal_controllers_v1_orderhistory.HistoryOrderToSave:
+    properties:
+      algorithmNamePlaced:
+        type: string
+      baseQty:
+        type: number
+      commissionQuoteQty:
+        type: number
+      highestBuyPrc:
+        type: number
+      lowestSellPrc:
+        type: number
+      price:
+        type: number
+      side:
+        type: string
+      timePlaced:
+        type: string
+      type:
+        type: string
+    required:
+    - algorithmNamePlaced
+    - baseQty
+    - commissionQuoteQty
+    - highestBuyPrc
+    - lowestSellPrc
+    - price
+    - side
+    - timePlaced
+    - type
+    type: object
+  internal_controllers_v1_orderhistory.getOrderHistoryResponse:
+    properties:
+      orders:
+        items:
+          $ref: '#/definitions/market-info-storage_internal_domain.HistoryOrder'
+        type: array
+    type: object
+  internal_controllers_v1_orderhistory.saveOrderRequestBody:
+    properties:
+      historyOrder:
+        $ref: '#/definitions/internal_controllers_v1_orderhistory.HistoryOrderToSave'
+    required:
+    - historyOrder
+    type: object
+  market-info-storage_internal_controllers_httputils.HTTPError:
+    properties:
+      error:
+        type: string
+    type: object
+  market-info-storage_internal_domain.DepthOrder:
+    properties:
+      baseQty:
+        type: number
+      price:
+        type: number
+    type: object
+  market-info-storage_internal_domain.HistoryOrder:
+    properties:
+      algorithmNamePlaced:
+        type: string
+      baseQty:
+        type: number
+      clinet:
+        type: string
+      commissionQuoteQty:
+        type: number
+      exchangeName:
+        type: string
+      highestBuyPrc:
+        type: number
+      label:
+        type: string
+      lowestSellPrc:
+        type: number
+      pair:
+        type: string
+      price:
+        type: number
+      side:
+        type: string
+      timePlaced:
+        type: string
+      type:
+        type: string
+    type: object
+info:
+  contact: {}
+  description: API to store and retreive market data
+  title: Market info storage
+  version: "1.0"
+paths:
+  /exchanges/{exchange}/pairs/{pair}/order-book:
+    get:
+      description: Retrieves the order book for a specific exchange and pair.
+      parameters:
+      - description: Exchange name
+        in: path
+        name: exchange
+        required: true
+        type: string
+      - description: Currency Pair
+        in: path
+        name: pair
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Order Book data
+          schema:
+            $ref: '#/definitions/internal_controllers_v1_orderbook.getOrderBookResponse'
+        "400":
+          description: Invalid request body
+          schema:
+            $ref: '#/definitions/market-info-storage_internal_controllers_httputils.HTTPError'
+        "404":
+          description: Order Book not found
+          schema:
+            $ref: '#/definitions/market-info-storage_internal_controllers_httputils.HTTPError'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/market-info-storage_internal_controllers_httputils.HTTPError'
+      summary: Get Order Book
+      tags:
+      - OrderBook
+    put:
+      consumes:
+      - application/json
+      description: Saves an order book for a specific exchange and pair.
+      parameters:
+      - description: Exchange name
+        in: path
+        name: exchange
+        required: true
+        type: string
+      - description: Currency Pair
+        in: path
+        name: pair
+        required: true
+        type: string
+      - description: Order Book data
+        in: body
+        name: orderBook
+        required: true
+        schema:
+          $ref: '#/definitions/internal_controllers_v1_orderbook.saveOrderBookRequestBody'
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Invalid request body
+          schema:
+            $ref: '#/definitions/market-info-storage_internal_controllers_httputils.HTTPError'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/market-info-storage_internal_controllers_httputils.HTTPError'
+      summary: Save Order Book
+      tags:
+      - OrderBook
+  /order-history:
+    get:
+      consumes:
+      - application/json
+      description: Returns a list of orders for the specified client.
+      parameters:
+      - description: Client name
+        in: query
+        name: client-name
+        required: true
+        type: string
+      - description: Exchange name
+        in: query
+        name: exchange
+        required: true
+        type: string
+      - description: Label
+        in: query
+        name: label
+        required: true
+        type: string
+      - description: Currency pair
+        in: query
+        name: pair
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_controllers_v1_orderhistory.getOrderHistoryResponse'
+        "400":
+          description: Invalid client data
+          schema:
+            $ref: '#/definitions/market-info-storage_internal_controllers_httputils.HTTPError'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/market-info-storage_internal_controllers_httputils.HTTPError'
+      summary: Get order history for a client
+      tags:
+      - OrderHistory
+    post:
+      consumes:
+      - application/json
+      description: Saves an order.
+      parameters:
+      - description: Client name
+        in: query
+        name: client-name
+        required: true
+        type: string
+      - description: Exchange name
+        in: query
+        name: exchange
+        required: true
+        type: string
+      - description: Label
+        in: query
+        name: label
+        required: true
+        type: string
+      - description: Currency pair
+        in: query
+        name: pair
+        required: true
+        type: string
+      - description: History order
+        in: body
+        name: history-order
+        required: true
+        schema:
+          $ref: '#/definitions/internal_controllers_v1_orderhistory.saveOrderRequestBody'
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Invalid request body
+          schema:
+            $ref: '#/definitions/market-info-storage_internal_controllers_httputils.HTTPError'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/market-info-storage_internal_controllers_httputils.HTTPError'
+      summary: Save order
+      tags:
+      - OrderHistory
+swagger: "2.0"
